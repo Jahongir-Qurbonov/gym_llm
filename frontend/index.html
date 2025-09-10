@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sport Zal Menejeri</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+      }
+      h1 {
+        text-align: center;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        margin: 0;
+        padding: 20px;
+        font-size: 1.8em;
+      }
+      #chat {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8f9fa;
+      }
+      .msg {
+        margin-bottom: 16px;
+        animation: fadeIn 0.3s ease-in;
+      }
+      .user {
+        background: #e3f2fd;
+        padding: 12px;
+        border-radius: 10px;
+        border-left: 4px solid #2196f3;
+        margin-left: 20%;
+      }
+      .assistant {
+        background: #f3e5f5;
+        padding: 12px;
+        border-radius: 10px;
+        border-left: 4px solid #9c27b0;
+        margin-right: 20%;
+      }
+      .input-area {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #eee;
+      }
+      textarea {
+        width: 100%;
+        height: 80px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: none;
+      }
+      textarea:focus {
+        border-color: #667eea;
+        outline: none;
+      }
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+      .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        flex: 1;
+      }
+      .btn-secondary {
+        background: #f5f5f5;
+        color: #666;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .meta {
+        font-size: 11px;
+        color: #999;
+        margin-top: 5px;
+      }
+      .status {
+        padding: 8px 16px;
+        background: #4caf50;
+        color: white;
+        border-radius: 20px;
+        font-size: 12px;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (max-width: 600px) {
+        body {
+          padding: 10px;
+        }
+        .container {
+          height: 90vh;
+        }
+        .user,
+        .assistant {
+          margin-left: 0;
+          margin-right: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🏋️‍♀️ Sport Zal Menejeri</h1>
+      <div class="status" id="status">Tayyor</div>
+      <div id="chat">
+        <div class="msg assistant">
+          <strong>Menejer:</strong> Assalomu alaykum! Men sizning sport zal
+          menejeringizman. Abonementlar, murabbiylar, jadvallar haqida
+          savollaringizga javob beraman. Nima bilan yordam berishim mumkin?
+        </div>
+      </div>
+      <div class="input-area">
+        <textarea
+          id="input"
+          placeholder="Masalan: 'Abonement turlari qanday?' yoki 'Yoga mashg'ulotlariga yoziling'"
+        ></textarea>
+        <div class="button-group">
+          <button class="btn-primary" onclick="sendMsg()">📤 Yuborish</button>
+          <button class="btn-secondary" onclick="clearChat()">
+            🗑️ Tozalash
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = window.location.origin;
+      let sessionId = localStorage.getItem("gym_session_id");
+      if (!sessionId) {
+        sessionId =
+          "sess-" +
+          Math.random().toString(36).substring(2, 12) +
+          "-" +
+          Date.now();
+        localStorage.setItem("gym_session_id", sessionId);
+      }
+
+      const chatDiv = document.getElementById("chat");
+      const statusDiv = document.getElementById("status");
+
+      function setStatus(text, type = "success") {
+        statusDiv.textContent = text;
+        statusDiv.className = "status";
+        if (type === "error") statusDiv.style.background = "#f44336";
+        else if (type === "loading") statusDiv.style.background = "#ff9800";
+        else statusDiv.style.background = "#4caf50";
+      }
+
+      function addMessage(who, text, showTime = true) {
+        const div = document.createElement("div");
+        div.className = `msg ${who}`;
+        const time = showTime
+          ? `<div class="meta">${new Date().toLocaleTimeString()}</div>`
+          : "";
+        div.innerHTML = `<strong>${
+          who === "user" ? "Siz" : "Menejer"
+        }:</strong> ${escapeHtml(text).replace(/\n/g, "<br>")} ${time}`;
+        chatDiv.appendChild(div);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
+
+      function escapeHtml(str) {
+        return str.replace(
+          /[&<>"']/g,
+          (s) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[s])
+        );
+      }
+
+      async function sendMsg() {
+        const input = document.getElementById("input");
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage("user", text);
+        input.value = "";
+        setStatus("Javob kiyapman...", "loading");
+
+        try {
+          const res = await fetch(`${API_BASE}/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              session_id: sessionId,
+              message: text,
+            }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || `HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          addMessage("assistant", data.answer);
+          setStatus("Tayyor");
+        } catch (e) {
+          addMessage("assistant", `❌ Xato: ${e.message}`);
+          setStatus("Xato yuz berdi", "error");
+        }
+      }
+
+      function clearChat() {
+        if (confirm("Suhbatni tozalashga aminmisiz?")) {
+          fetch(`${API_BASE}/api/session/${sessionId}`, { method: "DELETE" });
+          chatDiv.innerHTML = `
+          <div class="msg assistant">
+            <strong>Menejer:</strong> Suhbat tozalandi. Yana qanday yordam bera olishim mumkin?
+          </div>
+        `;
+          setStatus("Suhbat tozalandi");
+        }
+      }
+
+      // Enter tugmasi
+      document
+        .getElementById("input")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMsg();
+          }
+        });
+
+      setStatus("Tayyor");
+    </script>
+  </body>
+</html>

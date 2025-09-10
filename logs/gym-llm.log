@@ -1,0 +1,9 @@
+2025-09-10 08:25:49,401 - backend.main - INFO - ✅ LLM initialized: gemini - gemini-1.5-flash
+2025-09-10 08:26:32,147 - backend.main - INFO - Chat request: session=sess-dhe7l..., msg_len=5
+2025-09-10 08:30:22,722 - backend.main - INFO - ✅ LLM initialized: gemini - gemini-1.5-flash
+2025-09-10 08:30:35,178 - backend.main - INFO - Chat request: session=sess-dhe7l..., msg_len=5
+2025-09-10 08:31:10,042 - backend.main - INFO - Chat request: session=sess-dhe7l..., msg_len=17
+2025-09-10 08:33:06,416 - backend.main - INFO - ✅ LLM initialized: gemini - gemini-1.5-flash
+2025-09-10 08:33:24,471 - backend.main - INFO - Chat request: session=sess-dhe7l..., msg_len=28
+2025-09-10 08:34:34,173 - backend.main - INFO - Chat request: session=test-gemin..., msg_len=71
+2025-09-10 08:34:41,789 - backend.main - INFO - Chat request: session=test-gemin..., msg_len=40
